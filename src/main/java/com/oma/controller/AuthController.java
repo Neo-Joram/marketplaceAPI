@@ -5,6 +5,9 @@ import com.oma.dto.UserMapper;
 import com.oma.model.User;
 import com.oma.repository.UserRepo;
 import com.oma.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,6 +40,7 @@ public class AuthController {
     }
 
     @GetMapping
+    @Operation(summary="Get current user", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepo.findByEmail(email);
@@ -45,5 +49,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.ok(UserMapper.toDTO(user));
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<String> confirmEmail(@RequestParam String token) {
+        userService.confirmEmail(token);
+        return ResponseEntity.ok("Email verified!");
     }
 }

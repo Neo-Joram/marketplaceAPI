@@ -2,11 +2,18 @@ package com.oma.service;
 
 import com.oma.config.JwtUtil;
 import com.oma.model.User;
+import com.oma.model.VerificationToken;
 import com.oma.repository.UserRepo;
+import com.oma.repository.VerificationTokenRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,11 +22,15 @@ import java.util.UUID;
 public class UserService {
     private final UserRepo userRepo;
     private final JwtUtil jwtUtil;
+    private final VerificationTokenRepo tokenRepo;
+    private final EmailService emailService;
 
     @Autowired
-    public UserService(UserRepo userRepo, JwtUtil jwtUtil) {
+    public UserService(UserRepo userRepo, JwtUtil jwtUtil, VerificationTokenRepo tokenRepo, EmailService emailService) {
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
+        this.tokenRepo = tokenRepo;
+        this.emailService = emailService;
     }
 
     public String authenticate(String email, String password) {
@@ -29,13 +40,29 @@ public class UserService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        if (!user.isEnabled()){
-            throw new RuntimeException("Your sign-in is blocked. Contact your company Administrator");
+        if (!user.isEmailVerified()){
+            throw new RuntimeException("Your email is not verified. Verify your email now");
         }
 
         return jwtUtil.generateToken(user.getEmail());
     }
 
+    public void confirmEmail(String token){
+        VerificationToken vt = tokenRepo.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+
+        if (vt.getExpiresAt().isBefore(Instant.now())) {
+            throw new RuntimeException("Token expired");
+        }
+
+        User user = vt.getUser();
+        user.setEmailVerified(true);
+        userRepo.save(user);
+
+        tokenRepo.delete(vt);
+    }
+
+    @Cacheable("users")
     public List<User> getAllUsers() {
         return userRepo.findAll();
     }
@@ -44,8 +71,19 @@ public class UserService {
         return userRepo.findById(id);
     }
 
+    @Transactional
+    @CacheEvict(value="users", allEntries=true)
     public void createUser(User user) {
         userRepo.save(user);
+
+        String token = UUID.randomUUID().toString();
+        VerificationToken vt = new VerificationToken();
+        vt.setToken(token);
+        vt.setUser(user);
+        vt.setExpiresAt(Instant.now().plus(Duration.ofHours(24)));
+        tokenRepo.save(vt);
+
+        emailService.sendVerificationEmail(user, token);
     }
 
     public User updateUser(UUID id, User updatedUser) {
@@ -54,7 +92,8 @@ public class UserService {
         existingUser.setNames(updatedUser.getNames());
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setRole(updatedUser.getRole());
-        existingUser.setEnabled(updatedUser.isEnabled());
+        existingUser.setEmailVerified(updatedUser.isEmailVerified());
+        existingUser.setCreatedAt(existingUser.getCreatedAt());
 
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             existingUser.setPassword(updatedUser.getPassword());

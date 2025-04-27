@@ -12,7 +12,7 @@ public class UserMapper {
         dto.setNames(user.getNames());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
-        dto.setEnabled(user.isEnabled());
+        dto.setCreatedAt(user.getCreatedAt());
         return dto;
     }
 

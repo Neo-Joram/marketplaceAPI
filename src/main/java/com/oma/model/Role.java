@@ -1,5 +1,5 @@
 package com.oma.model;
 
 public enum Role {
-    ADMIN, SELLER, SHOPPER
+    ROLE_ADMIN, ROLE_SELLER, ROLE_SHOPPER
 }

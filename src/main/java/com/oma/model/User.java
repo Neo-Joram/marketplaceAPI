@@ -24,8 +24,8 @@ public class User {
 
     private Role role;
     private String password;
-    private boolean enabled;
     private LocalDateTime createdAt = LocalDateTime.now();
+    private boolean emailVerified;
 
     @PrePersist
     @PreUpdate
