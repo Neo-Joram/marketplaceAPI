@@ -1,6 +1,5 @@
 package com.oma.model;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -8,12 +7,17 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
+@Table(name = "verification_tokens")
 @Data
 public class VerificationToken {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String token;
-    @OneToOne private User user;
+
+    @OneToOne(optional = false)
+    private User user;
+
     private Instant expiresAt;
 }

@@ -14,9 +14,10 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Product product;
-    @ManyToOne
+
+    @ManyToOne(optional = false)
     private User author;
 
     private Integer rating;

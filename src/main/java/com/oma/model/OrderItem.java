@@ -13,9 +13,10 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Order order;
-    @ManyToOne
+
+    @ManyToOne(optional = false)
     private Product product;
 
     private Integer quantity;

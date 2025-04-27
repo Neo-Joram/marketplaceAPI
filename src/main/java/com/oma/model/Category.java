@@ -14,10 +14,11 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String name;
     private String slug;
 
-    @OneToMany
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> productList;
 
     private LocalDateTime createdAt = LocalDateTime.now();

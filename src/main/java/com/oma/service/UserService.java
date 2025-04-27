@@ -95,7 +95,7 @@ public class UserService {
         existingUser.setEmailVerified(updatedUser.isEmailVerified());
         existingUser.setCreatedAt(existingUser.getCreatedAt());
 
-        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty() && !updatedUser.getPassword().startsWith("$2a$")) {
             existingUser.setPassword(updatedUser.getPassword());
         }
 

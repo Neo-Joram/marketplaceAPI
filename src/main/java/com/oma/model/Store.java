@@ -13,12 +13,13 @@ public class Store {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String name;
     private String description;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private User owner;
 
-    @OneToMany
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> productList;
 }

@@ -16,21 +16,27 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String names;
 
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")
+    @Column(unique = true, nullable = false)
     private String email;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Column(nullable = false)
     private String password;
+
     private LocalDateTime createdAt = LocalDateTime.now();
     private boolean emailVerified;
 
     @PrePersist
     @PreUpdate
     private void hashPassword() {
-        if (password != null && !password.isEmpty()) {
+        if (password != null && !password.isEmpty() && !password.startsWith("$2a$")) {
             this.password = BCrypt.hashpw(password, BCrypt.gensalt());
         }
     }

@@ -3,6 +3,7 @@ package com.oma.controller;
 
 import com.oma.model.Category;
 import com.oma.service.CategoryService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,31 +23,35 @@ public class CategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> createCategory(Category category) {
-        categoryService.createCategory(category);
-        return ResponseEntity.ok("Success");
+    public ResponseEntity<Category> createCategory(Category category) {
+        Category created = categoryService.createCategory(category);   // now returns Category
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(created);
     }
 
     @GetMapping
-    public List<Category> getAllCategories(){
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getAllCategories(){
+        List<Category> cats = categoryService.getAllCategories();
+        return ResponseEntity.ok(cats);
     }
 
     @GetMapping("/{id}")
-    public Optional<Category> getById(@PathVariable UUID id) {
-        return categoryService.findById(id);
+    public ResponseEntity<Category> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(categoryService.findById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Category updateCategory(@PathVariable UUID id, @RequestBody Category category) {
-        return categoryService.updateCategory(id, category);
+    public ResponseEntity<Category> updateCategory(@PathVariable UUID id, @RequestBody Category category) {
+        Category updated = categoryService.updateCategory(id, category);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteById(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteById(@PathVariable UUID id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.ok("Deleted");
+        return ResponseEntity.noContent().build();
     }
 }

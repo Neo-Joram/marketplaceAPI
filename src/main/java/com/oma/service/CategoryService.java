@@ -3,11 +3,11 @@ package com.oma.service;
 import com.oma.model.Category;
 import com.oma.repository.CategoryRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.*;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,30 +20,37 @@ public class CategoryService {
     }
 
     @Cacheable("categories")
-    public List<Category> getAllCategories(){
+    public List<Category> getAllCategories() {
         return categoryRepo.findAll();
     }
 
-    public Optional<Category> findById(UUID id) {
-        return categoryRepo.findById(id);
+    public Category findById(UUID id) {
+        return categoryRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
     }
 
-    @CacheEvict(value="categories", allEntries=true)
-    public void createCategory(Category product) {
-        categoryRepo.save(product);
+    @CacheEvict(value = "categories", allEntries = true)
+    public Category createCategory(Category category) {
+        return categoryRepo.save(category);
     }
 
-    public Category updateCategory(UUID id, Category newCategory) {
-        Category oldCategory = categoryRepo.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+    @CacheEvict(value = "categories", allEntries = true)
+    public Category updateCategory(UUID id, Category updatedCategory) {
+        Category existingCategory = categoryRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
 
-        oldCategory.setName(newCategory.getName());
-        oldCategory.setSlug(newCategory.getSlug());
-        oldCategory.setProductList(newCategory.getProductList());
+        existingCategory.setName(updatedCategory.getName());
+        existingCategory.setSlug(updatedCategory.getSlug());
+        existingCategory.setProductList(updatedCategory.getProductList());
 
-        return categoryRepo.save(oldCategory);
+        return categoryRepo.save(existingCategory);
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(UUID id) {
+        if (!categoryRepo.existsById(id)) {
+            throw new RuntimeException("Category not found with ID: " + id);
+        }
         categoryRepo.deleteById(id);
     }
 }

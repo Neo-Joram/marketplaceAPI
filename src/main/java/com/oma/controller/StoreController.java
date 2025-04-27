@@ -37,7 +37,7 @@ public class StoreController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('SELLER') or hasRole('ADMIN')")
-    public Optional<Store> getStoreById(@PathVariable UUID id){
+    public Store getStoreById(@PathVariable UUID id){
         return storeService.findById(id);
     }
 

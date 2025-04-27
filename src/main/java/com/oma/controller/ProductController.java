@@ -22,9 +22,8 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<String> createProduct(@RequestBody Product product, Authentication authentication) {
-        String email = authentication.getName();
-        productService.createProduct(product, email);
+    public ResponseEntity<String> createProduct(@RequestBody Product product) {
+        productService.createProduct(product);
         return ResponseEntity.ok("Success");
     }
 
@@ -35,16 +34,16 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public Optional<Product> getProductById(@PathVariable UUID id) {
-        return productService.findById(id);
+        return Optional.ofNullable(productService.findById(id));
     }
 
     @GetMapping("/str/{id}")
-    public Product getByStoreId(@PathVariable UUID id) {
+    public List<Product> getByStoreId(@PathVariable UUID id) {
         return productService.findByStoreId(id);
     }
 
     @GetMapping("/ctg/{id}")
-    public Product getByCategoryId(@PathVariable UUID id) {
+    public List<Product> getByCategoryId(@PathVariable UUID id) {
         return productService.findByCategoryId(id);
     }
 

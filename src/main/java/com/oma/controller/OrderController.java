@@ -21,7 +21,7 @@ public class OrderController {
 
     @PostMapping
     @PreAuthorize("hasRole('SHOPPER')")
-    public ResponseEntity<String> createOrder(Order order) {
+    public ResponseEntity<String> createOrder(Order order) throws Exception {
         orderService.createOrder(order);
         return ResponseEntity.ok("Success");
     }
@@ -33,7 +33,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Order> getOrderById(@PathVariable UUID id) {
+    public Order getOrderById(@PathVariable UUID id) {
         return orderService.getOrderById(id);
     }
 

@@ -14,17 +14,20 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String title;
     private String description;
     private double price;
     private Integer quantity;
     private boolean featured;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Store store;
-    @ManyToOne
+
+    @ManyToOne(optional = false)
     private Category category;
-    @OneToMany
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> review;
 
     private LocalDateTime createdAt = LocalDateTime.now();

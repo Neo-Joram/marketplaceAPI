@@ -8,7 +8,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,29 +24,37 @@ public class StoreService {
         return storeRepo.findAll();
     }
 
-    public Optional<Store> findById(UUID id) {
-        return storeRepo.findById(id);
+    public Store findById(UUID id) {
+        return storeRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Store not found with ID: " + id));
     }
 
-    public Store findByOwnerId(UUID id) {return storeRepo.findByOwnerId(id);}
-
-    @CacheEvict(value="stores", allEntries=true)
-    public void createStore(Store store) {
-        storeRepo.save(store);
+    public Store findByOwnerId(UUID ownerId) {
+        return storeRepo.findByOwnerId(ownerId);
     }
 
-    public Store updateStore(UUID id, Store updatedStore){
-        Store existingStore = storeRepo.findById(id).orElseThrow(() -> new RuntimeException("Store not found"));
+    @CacheEvict(value = "stores", allEntries = true)
+    public Store createStore(Store store) {
+        return storeRepo.save(store);
+    }
+
+    @CacheEvict(value = "stores", allEntries = true)
+    public Store updateStore(UUID id, Store updatedStore) {
+        Store existingStore = storeRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Store not found with ID: " + id));
 
         existingStore.setName(updatedStore.getName());
         existingStore.setDescription(updatedStore.getDescription());
         existingStore.setOwner(updatedStore.getOwner());
-        existingStore.setProductList(updatedStore.getProductList());
 
         return storeRepo.save(existingStore);
     }
 
+    @CacheEvict(value = "stores", allEntries = true)
     public void deleteStore(UUID id) {
+        if (!storeRepo.existsById(id)) {
+            throw new RuntimeException("Store not found with ID: " + id);
+        }
         storeRepo.deleteById(id);
     }
 }
