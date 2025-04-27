@@ -59,11 +59,11 @@ Update the following settings inside `src/main/resources/application.properties`
 
 ```properties
 # Database
-#spring.datasource.url=jdbc:postgresql://dpg-cvs3nmmuk2gs739lfj00-a/oma_db
-#spring.datasource.username=oma_db_user
-#spring.datasource.password=my_pwd
-#spring.datasource.driver-class-name=org.postgresql.Driver
-#spring.jpa.hibernate.ddl-auto=update
+spring.datasource.url=jdbc:postgresql://dpg-cvs3nmmuk2gs739lfj00-a/oma_db
+spring.datasource.username=oma_db_user
+spring.datasource.password=my_pwd
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.hibernate.ddl-auto=update
 
 # Mail
 spring.mail.host=smtp.gmail.com
@@ -117,7 +117,7 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
-## 📦 Docker (optional)
+## Docker (optional)
 
 Create a `Dockerfile`:
 
