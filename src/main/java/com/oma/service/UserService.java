@@ -76,6 +76,10 @@ public class UserService {
     public void createUser(User user) {
         userRepo.save(user);
 
+        sendToken(user);
+    }
+
+    public void sendToken(User user){
         String token = UUID.randomUUID().toString();
         VerificationToken vt = new VerificationToken();
         vt.setToken(token);
