@@ -3,10 +3,10 @@ package com.oma.service;
 import com.oma.model.Order;
 import com.oma.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import io.github.cdimascio.dotenv.Dotenv;
 
 @Service
 public class EmailService {
@@ -16,10 +16,11 @@ public class EmailService {
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
+    @Value("${API_URL}")
+    private String apiUrl;
 
     public void sendVerificationEmail(User user, String token) {
-        Dotenv dotenv = Dotenv.load();
-        String link = dotenv.get("API_URL")+"/auth/confirm?token=" + token;
+        String link = apiUrl+"/auth/confirm?token=" + token;
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply@marketplace.com");
         message.setTo(user.getEmail());
