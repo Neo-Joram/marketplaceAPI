@@ -6,16 +6,15 @@ import com.oma.model.OrderStatus;
 import com.oma.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -27,11 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrderControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @MockBean private OrderService orderService;
+    @Mock
+    private OrderService orderService;
     @Autowired private ObjectMapper objectMapper;
     private UUID testId;
     private Order testOrder;
-    private String url = "/orders";
+    private final String url = "/orders";
 
     @BeforeEach
     void setup() {
@@ -45,6 +45,7 @@ public class OrderControllerTest {
     @WithMockUser(roles = "SHOPPER")
     void testCreateOrder() throws Exception {
         doNothing().when(orderService).createOrder(any());
+
         mockMvc.perform(post(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testOrder)))
@@ -55,6 +56,7 @@ public class OrderControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testGetAllOrders() throws Exception {
         when(orderService.getAllOrders()).thenReturn(List.of(testOrder));
+
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status").value("PENDING"));
@@ -62,7 +64,8 @@ public class OrderControllerTest {
 
     @Test
     void testGetOrderById() throws Exception {
-        when(orderService.getOrderById(testId)).thenReturn(Optional.of(testOrder));
+        when(orderService.getOrderById(testId)).thenReturn(testOrder);
+
         mockMvc.perform(get(url + "/" + testId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PENDING"));
@@ -70,7 +73,8 @@ public class OrderControllerTest {
 
     @Test
     void testGetOrderById_NotFound() throws Exception {
-        when(orderService.getOrderById(testId)).thenReturn(Optional.empty());
+        when(orderService.getOrderById(testId)).thenThrow(new RuntimeException("Order not found"));
+
         mockMvc.perform(get(url + "/" + testId))
                 .andExpect(status().isNotFound());
     }
@@ -79,6 +83,7 @@ public class OrderControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testUpdateOrder() throws Exception {
         when(orderService.updateOrder(eq(testId), any())).thenReturn(testOrder);
+
         mockMvc.perform(put(url + "/" + testId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(testOrder)))
@@ -89,6 +94,7 @@ public class OrderControllerTest {
     @WithMockUser(roles = "ADMIN")
     void testDeleteOrder() throws Exception {
         doNothing().when(orderService).deleteOrder(testId);
+
         mockMvc.perform(delete(url + "/" + testId))
                 .andExpect(status().isOk());
     }
