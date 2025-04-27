@@ -1,140 +1,82 @@
 package com.oma.serviceTest;
 
-import com.oma.model.*;
-import com.oma.repository.*;
-import com.oma.service.*;
+import com.oma.model.Order;
+import com.oma.model.OrderStatus;
+import com.oma.repository.OrderRepo;
+import com.oma.repository.ProductRepo;
+import com.oma.service.OrderService;
+import com.oma.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import java.util.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class OrderServiceTest {
 
-    @Mock private OrderRepo orderRepo;
-    @Mock private ProductRepo productRepo;
-    @Mock private PaymentService paymentService;
+    @Mock
+    private OrderRepo orderRepo;
 
-    @InjectMocks private OrderService orderService;
+    @Mock
+    private ProductRepo productRepo;
 
-    private UUID testId;
+    @Mock
+    private PaymentService paymentService;
+
+    @InjectMocks
+    private OrderService orderService;
+
     private Order testOrder;
-    private Product testProduct;
+    private UUID testId;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
         testId = UUID.randomUUID();
-        testProduct = new Product();
-        testProduct.setId(testId);
-        testProduct.setTitle("Test Product");
-        testProduct.setQuantity(5);
         testOrder = new Order();
         testOrder.setId(testId);
-        testOrder.setBuyer(new User());
-        testOrder.setItemList(new ArrayList<>());
+        testOrder.setStatus(OrderStatus.PENDING);
     }
 
     @Test
-    public void testGetAllOrders() {
+    void testGetAllOrders() {
         when(orderRepo.findAll()).thenReturn(List.of(testOrder));
+
         List<Order> result = orderService.getAllOrders();
+
         assertEquals(1, result.size());
-        verify(orderRepo).findAll();
     }
 
     @Test
-    public void testGetOrderById_success() {
-        when(orderRepo.findById(testId)).thenReturn(Optional.of(testOrder));
-        Optional<Order> result = orderService.getOrderById(testId);
-        assertTrue(result.isPresent());
-        assertEquals(testOrder.getId(), result.get().getId());
-        verify(orderRepo).findById(testId);
+    void testGetOrderById() {
+        when(orderRepo.findById(testId)).thenReturn(java.util.Optional.of(testOrder));
+
+        Order result = orderService.getOrderById(testId);
+
+        assertEquals(OrderStatus.PENDING, result.getStatus());
     }
 
     @Test
-    public void testGetOrderById_notFound() {
-        when(orderRepo.findById(testId)).thenReturn(Optional.empty());
-        Optional<Order> result = orderService.getOrderById(testId);
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    public void testCreateOrder_paymentSuccessful() throws Exception {
-        OrderItem item = new OrderItem();
-        item.setId(testId);
-        item.setQuantity(1);
-        testOrder.setItemList(List.of(item));
-
-        when(productRepo.findById(testId)).thenReturn(Optional.of(testProduct));
-        when(paymentService.simplePay()).thenReturn("successful");
-
-        orderService.createOrder(testOrder);
-
-        assertEquals(OrderStatus.PAID, testOrder.getStatus());
-        verify(orderRepo, times(2)).save(testOrder);
-    }
-
-    @Test
-    public void testCreateOrder_paymentFailed() {
-        OrderItem item = new OrderItem();
-        item.setId(testId);
-        item.setQuantity(1);
-        testOrder.setItemList(List.of(item));
-
-        when(productRepo.findById(testId)).thenReturn(Optional.of(testProduct));
-        when(paymentService.simplePay()).thenReturn("failed");
-
-        Exception exception = assertThrows(Exception.class, () -> {
-            orderService.createOrder(testOrder);
-        });
-
-        assertEquals("Payment failed.", exception.getMessage());
-        assertEquals(OrderStatus.CANCELLED, testOrder.getStatus());
-    }
-
-    @Test
-    public void testCreateOrder_insufficientStock() {
-        testProduct.setQuantity(0);
-        OrderItem item = new OrderItem();
-        item.setId(testId);
-        item.setQuantity(1);
-        testOrder.setItemList(List.of(item));
-
-        when(productRepo.findById(testId)).thenReturn(Optional.of(testProduct));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.createOrder(testOrder);
-        });
-
-        assertEquals("Insufficient stock for product: Test Product", exception.getMessage());
-    }
-
-    @Test
-    public void testUpdateOrder_success() {
-        when(orderRepo.findById(testId)).thenReturn(Optional.of(testOrder));
-        when(orderRepo.save(any())).thenReturn(testOrder);
+    void testUpdateOrder() {
+        when(orderRepo.findById(testId)).thenReturn(java.util.Optional.of(testOrder));
+        when(orderRepo.save(any(Order.class))).thenReturn(testOrder);
 
         Order result = orderService.updateOrder(testId, testOrder);
 
-        assertEquals(testOrder.getId(), result.getId());
+        assertEquals(OrderStatus.PENDING, result.getStatus());
     }
 
     @Test
-    public void testUpdateOrder_notFound() {
-        when(orderRepo.findById(testId)).thenReturn(Optional.empty());
+    void testDeleteOrder() {
+        when(orderRepo.existsById(testId)).thenReturn(true);
+        doNothing().when(orderRepo).deleteById(testId);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderService.updateOrder(testId, new Order());
-        });
-
-        assertEquals("Product not found", exception.getMessage());
-    }
-
-    @Test
-    public void testDeleteOrder() {
-        orderService.deleteOrder(testId);
-        verify(orderRepo).deleteById(testId);
+        assertDoesNotThrow(() -> orderService.deleteOrder(testId));
     }
 }

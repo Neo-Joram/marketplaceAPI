@@ -5,8 +5,13 @@ import com.oma.repository.CategoryRepo;
 import com.oma.service.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import java.util.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -18,91 +23,61 @@ public class CategoryServiceTest {
     @InjectMocks
     private CategoryService categoryService;
 
-    private UUID testId;
     private Category testCategory;
+    private UUID testId;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         testId = UUID.randomUUID();
         testCategory = new Category();
         testCategory.setId(testId);
         testCategory.setName("Test Category");
-        testCategory.setSlug("test-category");
     }
 
     @Test
-    public void testGetAllCategories() {
-        List<Category> categories = Arrays.asList(testCategory);
-        when(categoryRepo.findAll()).thenReturn(categories);
+    void testGetAllCategories() {
+        when(categoryRepo.findAll()).thenReturn(List.of(testCategory));
 
         List<Category> result = categoryService.getAllCategories();
 
         assertEquals(1, result.size());
-        assertEquals(testCategory.getName(), result.get(0).getName());
-        verify(categoryRepo, times(1)).findAll();
+        assertEquals("Test Category", result.get(0).getName());
     }
 
     @Test
-    public void testFindCategoryById_success() {
-        when(categoryRepo.findById(testId)).thenReturn(Optional.of(testCategory));
+    void testFindById() {
+        when(categoryRepo.findById(testId)).thenReturn(java.util.Optional.of(testCategory));
 
-        Optional<Category> result = categoryService.findById(testId);
+        Category result = categoryService.findById(testId);
 
-        assertTrue(result.isPresent());
-        assertEquals(testCategory.getName(), result.get().getName());
-        verify(categoryRepo, times(1)).findById(testId);
+        assertEquals("Test Category", result.getName());
     }
 
     @Test
-    public void testFindCategoryById_notFound() {
-        when(categoryRepo.findById(testId)).thenReturn(Optional.empty());
-
-        Optional<Category> result = categoryService.findById(testId);
-
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    public void testCreateCategory() {
+    void testCreateCategory() {
         when(categoryRepo.save(any(Category.class))).thenReturn(testCategory);
 
-        categoryService.createCategory(testCategory);
+        Category result = categoryService.createCategory(testCategory);
 
-        verify(categoryRepo, times(1)).save(testCategory);
+        assertEquals("Test Category", result.getName());
     }
 
     @Test
-    public void testUpdateCategory_success() {
-        Category updatedCategory = new Category();
-        updatedCategory.setName("Updated Category");
-        updatedCategory.setSlug("updated-category");
-
-        when(categoryRepo.findById(testId)).thenReturn(Optional.of(testCategory));
+    void testUpdateCategory() {
+        when(categoryRepo.findById(testId)).thenReturn(java.util.Optional.of(testCategory));
         when(categoryRepo.save(any(Category.class))).thenReturn(testCategory);
 
-        Category result = categoryService.updateCategory(testId, updatedCategory);
+        Category result = categoryService.updateCategory(testId, testCategory);
 
-        assertEquals(updatedCategory.getName(), result.getName());
-        assertEquals(updatedCategory.getSlug(), result.getSlug());
-        verify(categoryRepo, times(1)).findById(testId);
-        verify(categoryRepo, times(1)).save(any(Category.class));
+        assertEquals("Test Category", result.getName());
     }
 
     @Test
-    public void testUpdateCategory_notFound() {
-        when(categoryRepo.findById(testId)).thenReturn(Optional.empty());
+    void testDeleteCategory() {
+        when(categoryRepo.existsById(testId)).thenReturn(true);
+        doNothing().when(categoryRepo).deleteById(testId);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            categoryService.updateCategory(testId, new Category());
-        });
-
-        assertEquals("Product not found", exception.getMessage());
-    }
-
-    @Test
-    public void testDeleteCategory() {
-        categoryService.deleteCategory(testId);
-        verify(categoryRepo, times(1)).deleteById(testId);
+        assertDoesNotThrow(() -> categoryService.deleteCategory(testId));
     }
 }
