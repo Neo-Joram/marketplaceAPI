@@ -47,8 +47,8 @@ This is a **Spring Boot** project for an online marketplace, providing a REST AP
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/online-marketplace-api.git
-cd online-marketplace-api
+git clone https://github.com/Neo-Joram/marketplaceAPI.git
+cd marketplaceAPI
 ```
 
 ---
