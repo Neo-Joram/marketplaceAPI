@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import io.github.cdimascio.dotenv.Dotenv;
 
 @Service
 public class EmailService {
     private final JavaMailSender mailSender;
+    Dotenv dotenv = Dotenv.load();
 
     @Autowired
     public EmailService(JavaMailSender mailSender) {
@@ -17,7 +19,7 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(User user, String token) {
-        String link = "http://localhost:8080/auth/confirm?token=" + token;
+        String link = dotenv.get("API_URL")+"/auth/confirm?token=" + token;
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply@marketplace.com");
         message.setTo(user.getEmail());
