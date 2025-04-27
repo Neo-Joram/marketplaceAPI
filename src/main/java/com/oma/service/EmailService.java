@@ -11,7 +11,6 @@ import io.github.cdimascio.dotenv.Dotenv;
 @Service
 public class EmailService {
     private final JavaMailSender mailSender;
-    Dotenv dotenv = Dotenv.load();
 
     @Autowired
     public EmailService(JavaMailSender mailSender) {
@@ -19,6 +18,7 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(User user, String token) {
+        Dotenv dotenv = Dotenv.load();
         String link = dotenv.get("API_URL")+"/auth/confirm?token=" + token;
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply@marketplace.com");
