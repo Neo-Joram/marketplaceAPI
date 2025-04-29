@@ -136,9 +136,9 @@ Run tests (unit + Integration)
 ---
 
 ## System architecture diagram 
-```
+
 ![System design](SystemArchtecture.png)
-```
+
 
 ## Author
 
