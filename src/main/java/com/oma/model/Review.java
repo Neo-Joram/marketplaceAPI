@@ -1,5 +1,6 @@
 package com.oma.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,7 +15,9 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    @JsonBackReference
     private Product product;
 
     @ManyToOne(optional = false)

@@ -1,10 +1,10 @@
 package com.oma.service;
 
+import com.oma.dto.*;
 import com.oma.model.Product;
 import com.oma.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,31 +19,32 @@ public class ProductService {
         this.productRepo = productRepo;
     }
 
-    @Cacheable("products")
-    public List<Product> getAllProducts() {
-        return productRepo.findAll();
+    public List<ProductDTO> getAllProducts() {
+        return ProductMapper.toDTOList(productRepo.findAll());
     }
 
-    public Product findById(UUID id) {
-        return productRepo.findById(id)
+    public ProductDTO findById(UUID id) {
+        Product product = productRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+        return ProductMapper.toDTO(product);
     }
 
-    public List<Product> findByStoreId(UUID storeId) {
-        return productRepo.findByStoreId(storeId);
+    public List<ProductDTO> findByStoreId(UUID storeId) {
+        return ProductMapper.toDTOList(productRepo.findByStoreId(storeId));
     }
 
-    public List<Product> findByCategoryId(UUID categoryId) {
-        return productRepo.findByCategoryId(categoryId);
-    }
-
-    @CacheEvict(value = "products", allEntries = true)
-    public Product createProduct(Product product) {
-        return productRepo.save(product);
+    public List<ProductDTO> findByCategoryId(UUID categoryId) {
+        return ProductMapper.toDTOList(productRepo.findByCategoryId(categoryId));
     }
 
     @CacheEvict(value = "products", allEntries = true)
-    public Product updateProduct(UUID id, Product updatedProduct) {
+    public ProductDTO createProduct(Product product) {
+        Product savedProduct = productRepo.save(product);
+        return ProductMapper.toDTO(savedProduct);
+    }
+
+    @CacheEvict(value = "products", allEntries = true)
+    public ProductDTO updateProduct(UUID id, Product updatedProduct) {
         Product existingProduct = productRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
 
@@ -55,7 +56,8 @@ public class ProductService {
         existingProduct.setCategory(updatedProduct.getCategory());
         existingProduct.setStore(updatedProduct.getStore());
 
-        return productRepo.save(existingProduct);
+        Product savedProduct = productRepo.save(existingProduct);
+        return ProductMapper.toDTO(savedProduct);
     }
 
     @CacheEvict(value = "products", allEntries = true)

@@ -1,5 +1,6 @@
 package com.oma.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,5 +22,6 @@ public class Store {
     private User owner;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Product> productList;
 }

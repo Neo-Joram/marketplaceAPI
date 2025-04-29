@@ -1,7 +1,9 @@
 package com.oma.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +30,8 @@ public class Product {
     private Category category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> review;
+    private List<Review> reviews;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

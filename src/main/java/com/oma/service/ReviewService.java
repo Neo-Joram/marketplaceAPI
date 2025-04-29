@@ -1,5 +1,6 @@
 package com.oma.service;
 
+import com.oma.dto.CreateReviewRequest;
 import com.oma.model.Order;
 import com.oma.model.Product;
 import com.oma.model.Review;
@@ -29,7 +30,17 @@ public class ReviewService {
         this.productRepo = productRepo;
     }
 
-    public Review createReview(Review review) {
+    public Review createReview(CreateReviewRequest request) {
+        Product product = productRepo.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        User author = userRepo.findById(request.getAuthorId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Review review = new Review();
+        review.setProduct(product);
+        review.setAuthor(author);
+        review.setRating(request.getRating());
+        review.setComment(request.getComment());
         return reviewRepo.save(review);
     }
 

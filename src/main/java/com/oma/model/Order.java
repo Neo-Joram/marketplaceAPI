@@ -2,6 +2,7 @@ package com.oma.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,7 +25,9 @@ public class Order {
 
     private OrderStatus status;
     private double totalPrice;
-    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     public void addItem(Product product, int qty) {
         OrderItem item = new OrderItem();

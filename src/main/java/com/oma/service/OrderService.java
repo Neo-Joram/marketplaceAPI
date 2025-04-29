@@ -1,67 +1,90 @@
 package com.oma.service;
 
-import com.oma.model.Order;
-import com.oma.model.OrderItem;
-import com.oma.model.OrderStatus;
-import com.oma.model.Product;
+import com.oma.dto.CreateOrderItemRequest;
+import com.oma.dto.CreateOrderRequest;
+import com.oma.dto.OrderDTO;
+import com.oma.dto.OrderMapper;
+import com.oma.model.*;
 import com.oma.repository.OrderRepo;
 import com.oma.repository.ProductRepo;
+import com.oma.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
     private final OrderRepo orderRepo;
     private final ProductRepo productRepo;
     private final PaymentService paymentService;
+    private final UserRepo userRepo;
 
     @Autowired
-    public OrderService(OrderRepo orderRepo, ProductRepo productRepo, PaymentService paymentService) {
+    public OrderService(OrderRepo orderRepo, ProductRepo productRepo, PaymentService paymentService, UserRepo userRepo) {
         this.orderRepo = orderRepo;
         this.productRepo = productRepo;
         this.paymentService = paymentService;
+        this.userRepo = userRepo;
     }
 
     @Cacheable("orders")
-    public List<Order> getAllOrders() {
-        return orderRepo.findAll();
+    public List<OrderDTO> getAllOrders() {
+        return orderRepo.findAll().stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Order getOrderById(UUID id) {
-        return orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
+    public OrderDTO getOrderById(UUID id) {
+        Order order = orderRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return OrderMapper.toDTO(order);
     }
 
-    public List<Order> getOrderByUserId(UUID userId) {
-        return orderRepo.getOrderByBuyerId(userId);
+    public List<OrderDTO> getOrderByUserId(UUID userId) {
+        return orderRepo.getOrderByBuyerId(userId).stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
     @CacheEvict(value = "orders", allEntries = true)
-    public void createOrder(Order order) throws Exception {
-        if (order.getItemList() == null || order.getItemList().isEmpty()) {
-            throw new RuntimeException("Order must contain at least one item.");
-        }
+    public void createOrder(CreateOrderRequest request) throws Exception {
+        User buyer = userRepo.findById(request.getBuyerId())
+                .orElseThrow(() -> new RuntimeException("Buyer not found"));
 
-        for (OrderItem it : order.getItemList()) {
-            Product p = productRepo.findById(it.getProduct().getId())
-                    .orElseThrow(() -> new RuntimeException("Product not found with ID: " + it.getProduct().getId()));
+        Order order = new Order();
+        order.setBuyer(buyer);
+        order.setStatus(OrderStatus.valueOf(request.getStatus()));
+        order.setTotalPrice(request.getTotalPrice());
 
-            if (p.getQuantity() < it.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for product: " + p.getTitle());
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (CreateOrderItemRequest itemReq : request.getItemList()) {
+            Product product = productRepo.findById(itemReq.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            if (product.getQuantity() < itemReq.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product: " + product.getTitle());
             }
 
-            order.addItem(p, it.getQuantity());
-            p.setQuantity(p.getQuantity() - it.getQuantity());
-            productRepo.save(p);
-        }
+            OrderItem item = new OrderItem();
+            item.setProduct(product);
+            item.setOrder(order);
+            item.setQuantity(itemReq.getQuantity());
+            item.setPriceAtPurchase(product.getPrice());
 
+            product.setQuantity(product.getQuantity() - itemReq.getQuantity());
+            productRepo.save(product);
+
+            orderItems.add(item);
+        }
+        order.setItemList(orderItems);
         order.computeTotal();
         orderRepo.save(order);
 
@@ -71,18 +94,19 @@ public class OrderService {
             order.setStatus(OrderStatus.PAID);
             orderRepo.save(order);
         } else {
-            // Rollback stock
-            for (OrderItem item : order.getItemList()) {
-                Product product = productRepo.findById(item.getProduct().getId())
-                        .orElseThrow(() -> new RuntimeException("Product not found during rollback"));
-                product.setQuantity(product.getQuantity() + item.getQuantity());
-                productRepo.save(product);
-            }
-
+            rollbackStock(order.getItemList());
             order.setStatus(OrderStatus.CANCELLED);
             orderRepo.save(order);
-
             throw new Exception("Payment failed.");
+        }
+    }
+
+    private void rollbackStock(List<OrderItem> itemList) {
+        for (OrderItem item : itemList) {
+            Product product = productRepo.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found during rollback"));
+            product.setQuantity(product.getQuantity() + item.getQuantity());
+            productRepo.save(product);
         }
     }
 

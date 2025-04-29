@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime createdAt;
     private boolean emailVerified;
 
     @PrePersist

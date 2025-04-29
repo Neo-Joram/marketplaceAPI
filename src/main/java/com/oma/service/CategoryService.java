@@ -41,7 +41,6 @@ public class CategoryService {
 
         existingCategory.setName(updatedCategory.getName());
         existingCategory.setSlug(updatedCategory.getSlug());
-        existingCategory.setProductList(updatedCategory.getProductList());
 
         return categoryRepo.save(existingCategory);
     }

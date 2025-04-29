@@ -1,6 +1,7 @@
 package com.oma.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oma.dto.OrderDTO;
 import com.oma.model.Order;
 import com.oma.model.OrderStatus;
 import com.oma.service.OrderService;
@@ -30,13 +31,13 @@ public class OrderControllerTest {
     private OrderService orderService;
     @Autowired private ObjectMapper objectMapper;
     private UUID testId;
-    private Order testOrder;
+    private OrderDTO testOrder;
     private final String url = "/orders";
 
     @BeforeEach
     void setup() {
         testId = UUID.randomUUID();
-        testOrder = new Order();
+        testOrder = new OrderDTO();
         testOrder.setId(testId);
         testOrder.setStatus(OrderStatus.PENDING);
     }
@@ -82,7 +83,7 @@ public class OrderControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void testUpdateOrder() throws Exception {
-        when(orderService.updateOrder(eq(testId), any())).thenReturn(testOrder);
+        when(orderService.updateOrder(eq(testId), any()));
 
         mockMvc.perform(put(url + "/" + testId)
                         .contentType(MediaType.APPLICATION_JSON)

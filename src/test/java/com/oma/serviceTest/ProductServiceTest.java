@@ -1,5 +1,6 @@
 package com.oma.serviceTest;
 
+import com.oma.dto.ProductDTO;
 import com.oma.model.Product;
 import com.oma.repository.ProductRepo;
 import com.oma.service.ProductService;
@@ -39,7 +40,7 @@ public class ProductServiceTest {
         List<Product> products = Collections.singletonList(testProduct);
         when(productRepo.findAll()).thenReturn(products);
 
-        List<Product> result = productService.getAllProducts();
+        List<ProductDTO> result = productService.getAllProducts();
 
         assertEquals(1, result.size());
         assertEquals(testProduct.getTitle(), result.get(0).getTitle());
@@ -50,7 +51,7 @@ public class ProductServiceTest {
     public void testFindProductById_success() {
         when(productRepo.findById(testId)).thenReturn(Optional.of(testProduct));
 
-        Optional<Product> result = Optional.ofNullable(productService.findById(testId));
+        Optional<ProductDTO> result = Optional.ofNullable(productService.findById(testId));
 
         assertTrue(result.isPresent());
         assertEquals(testProduct.getTitle(), result.get().getTitle());
@@ -61,7 +62,7 @@ public class ProductServiceTest {
     public void testFindProductById_notFound() {
         when(productRepo.findById(testId)).thenReturn(Optional.empty());
 
-        Optional<Product> result = Optional.ofNullable(productService.findById(testId));
+        Optional<ProductDTO> result = Optional.ofNullable(productService.findById(testId));
 
         assertFalse(result.isPresent());
     }
@@ -102,7 +103,7 @@ public class ProductServiceTest {
         when(productRepo.findById(testId)).thenReturn(Optional.of(testProduct));
         when(productRepo.save(any(Product.class))).thenReturn(testProduct);
 
-        Product result = productService.updateProduct(testId, updatedProduct);
+        ProductDTO result = productService.updateProduct(testId, updatedProduct);
 
         assertEquals(updatedProduct.getTitle(), result.getTitle());
         assertEquals(updatedProduct.getDescription(), result.getDescription());

@@ -1,5 +1,6 @@
 package com.oma.controller;
 
+import com.oma.dto.LoginRequest;
 import com.oma.dto.UserDto;
 import com.oma.dto.UserMapper;
 import com.oma.model.User;
@@ -26,21 +27,18 @@ import java.util.UUID;
 public class AuthController {
     private final UserService userService;
     private final UserRepo userRepo;
-    private final VerificationTokenRepo tokenRepo;
-    private final EmailService emailService;
 
-    public AuthController(UserService userService, UserRepo userRepo, VerificationTokenRepo tokenRepo, EmailService emailService) {
+    public AuthController(UserService userService, UserRepo userRepo) {
         this.userService = userService;
         this.userRepo = userRepo;
-        this.tokenRepo = tokenRepo;
-        this.emailService = emailService;
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> request) {
+    @Operation(summary="Login with your email and password")
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest request) {
         try {
-            String email = request.get("email");
-            String password = request.get("password");
+            String email = request.getEmail();
+            String password = request.getPassword();
             String token = userService.authenticate(email, password);
             return ResponseEntity.ok(Map.of("token", token));
         } catch (RuntimeException ex) {
@@ -62,6 +60,7 @@ public class AuthController {
     }
 
     @PostMapping("/vrf")
+    @Operation(summary="Get email verification code")
     public ResponseEntity<String> sendVerificationToken(String email) {
         User user = userRepo.findByEmail(email);
         userService.sendToken(user);
@@ -69,6 +68,7 @@ public class AuthController {
     }
 
     @GetMapping("/confirm")
+    @Operation(summary="Confirm your email verification")
     public ResponseEntity<String> confirmEmail(@RequestParam String token) {
         userService.confirmEmail(token);
         return ResponseEntity.ok("Email verified!");

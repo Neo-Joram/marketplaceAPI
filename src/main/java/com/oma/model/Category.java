@@ -18,8 +18,5 @@ public class Category {
     private String name;
     private String slug;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Product> productList;
-
     private LocalDateTime createdAt = LocalDateTime.now();
 }

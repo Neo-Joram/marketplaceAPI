@@ -1,6 +1,7 @@
 package com.oma.controllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oma.dto.ProductDTO;
 import com.oma.model.Product;
 import com.oma.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,13 +30,13 @@ public class ProductControllerTest {
     private ProductService productService;
     @Autowired private ObjectMapper objectMapper;
     private UUID testId;
-    private Product testProduct;
+    private ProductDTO testProduct;
     private final String url = "/products";
 
     @BeforeEach
     void setup() {
         testId = UUID.randomUUID();
-        testProduct = new Product();
+        testProduct = new ProductDTO();
         testProduct.setId(testId);
         testProduct.setTitle("Test Product");
         testProduct.setDescription("Test Description");
