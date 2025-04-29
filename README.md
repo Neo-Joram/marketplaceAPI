@@ -56,9 +56,9 @@ Update the following settings inside `src/main/resources/application.properties`
 
 ```properties
 # Database
-spring.datasource.url=jdbc:postgresql://dpg-cvs3nmmuk2gs739lfj00-a/oma_db
+spring.datasource.url=jdbc:postgresql://dpg-d075athr0fns7387v630-a/oma_db
 spring.datasource.username=oma_db_user
-spring.datasource.password=my_pwd
+spring.datasource.password=nBayXnUAaGTQOLB0EjVpZp42QFx6gmbt
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=update
 
@@ -80,7 +80,7 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 ./mvnw spring-boot:run
 ```
 
-API will be available at:
+API will be available (Online) at:
 
 ```
 https://marketplaceapi-hln1.onrender.com/
@@ -128,12 +128,17 @@ docker build -t online-marketplace-api .
 docker run -p 8080:8080 online-marketplace-api
 ```
 
-Tests (unit + Integration)
+Run tests (unit + Integration)
 
 ```bash
 ./mvnw clean test
 ```
 ---
+
+## System architecture diagram 
+```
+![System design](SystemArchtecture.png)
+```
 
 ## Author
 
