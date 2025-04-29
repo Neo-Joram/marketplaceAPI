@@ -12,33 +12,30 @@ This is a **Spring Boot** project for an online marketplace, providing a REST AP
 
 ---
 
-## 🚀 Features
+## Features
 
-- **JWT Authentication** and **Authorization**
-- **Role-Based Access Control** (`ADMIN`, `SELLER`, `SHOPPER`)
-- **Email Verification** on registration
-- **Swagger UI** for API documentation
-- **Asynchronous Order Processing** using **ActiveMQ** (or RabbitMQ, configurable)
-- **Secure Password Hashing** with BCrypt
-- **Order Reviews** (only after purchase)
-- **Swagger/OpenAPI 3.0 Specification**
-- **Clean layered architecture** (Controller ➔ Service ➔ Repository ➔ Model)
+- JWT Authentication and Authorization
+- Role-Based Access Control (`ADMIN`, `SELLER`, `SHOPPER`)
+- Email Verification during Registration
+- Swagger UI and OpenAPI 3.0 for API Documentation
+- Secure Password Hashing with BCrypt
+- Clean Layered Architecture (Controller ➔ Service ➔ Repository ➔ DTO ➔ Model)
+- Unit and Integration Testing using JUnit and MockMvc
+- Spring Caching on Services (using @Cacheable and @CacheEvict)
+- Payment Simulation for Order Checkout
 
 ---
 
 ## Tech Stack
 
-| Tech | Description |
-|:----|:------------|
-| Java 23 | Core backend language |
-| Spring Boot 3.x | Backend framework |
-| Spring Security 6.x | Authentication and authorization |
-| Spring Data JPA | ORM and database access |
-| PostgreSQL | Database |
-| ActiveMQ | Asynchronous order queue |
-| Swagger / OpenAPI | API documentation |
-| JavaMailSenger | Email sending for verification |
-| Maven | Build tool |
+- Java 17+
+- Spring Boot 3.x
+- Spring Security 6.x
+- Spring Data JPA
+- PostgreSQL (production) / H2 (testing)
+- Swagger / OpenAPI for API docs
+- JavaMailSender for Email Verification
+- Maven Build Tool
 
 ---
 
@@ -72,11 +69,6 @@ spring.mail.username=your-email@gmail.com
 spring.mail.password=your-app-password
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
-
-# ActiveMQ
-spring.activemq.broker-url=tcp://localhost:61616
-spring.activemq.user=admin
-spring.activemq.password=admin
 ```
 
 ---
@@ -88,33 +80,29 @@ spring.activemq.password=admin
 ./mvnw spring-boot:run
 ```
 
-Backend will be available at:
+API will be available at:
 
 ```
-http://localhost:8080
+https://marketplaceapi-hln1.onrender.com/
 ```
 
 Swagger UI:
 
 ```
-http://localhost:8080/swagger-ui/index.html
+https://marketplaceapi-hln1.onrender.com/swagger-ui/index.html#/
 ```
 
 ---
 
 ## API Overview
 
-| Method | URL | Description |
-|:------|:----|:------------|
-| POST | `/auth` | User login |
-| GET  | `/auth` | Get current user |
-| POST | `/users` | User registration |
-| GET  | `/products` | Browse products |
-| POST | `/products` | Create new product (seller only) |
-| POST | `/orders` | Create new order (shopper only) |
-| POST | `/reviews/{productId}` | Submit a review |
-| ... | ... | Full list available in Swagger UI |
-
+- POST `/auth` - Login
+- GET `/auth` - Get Authenticated User
+- POST `/users` - Register User
+- GET `/products` - Browse Products
+- POST `/products` - Create Product (Seller Only)
+- POST `/orders` - Create Order (Shopper Only)
+- POST `/reviews` - Submit Review (after purchase)
 ---
 
 ## Docker (optional)
@@ -127,8 +115,8 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 FROM openjdk:17.0.1-jdk-slim
+LABEL authors="Yoramu"
 COPY --from=build /target/OnlineMarketplaceAPI-0.0.1-SNAPSHOT.jar OnlineMarketplaceAPI.jar
-COPY --from=build .env .
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "OnlineMarketplaceAPI.jar"]
 ```
@@ -140,9 +128,14 @@ docker build -t online-marketplace-api .
 docker run -p 8080:8080 online-marketplace-api
 ```
 
+Tests (unit + Integration)
+
+```bash
+./mvnw clean test
+```
 ---
 
 ## Author
 
 - Neo Joram (Me!)
-- Backend Engineer
+- Software Engineer
